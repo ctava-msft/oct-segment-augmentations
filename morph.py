@@ -3,7 +3,6 @@ Morph module encapsulated the MeshSegmentMorpher class.
 """
 import json
 import os
-import cv2
 import numpy as np
 from PIL import Image
 import torchio as tio
@@ -83,7 +82,6 @@ class SegmentMorpher():
         np.save(os.path.join(self.output_dir, "morphed_image.npy"), self.image_data_morphed)
         image = Image.fromarray(self.image_data_morphed.astype(np.uint8))
         image.save(os.path.join(self.output_dir, 'morphed_image.png'))
-
 
     # generated morphed images
     def generate_outputs(self):

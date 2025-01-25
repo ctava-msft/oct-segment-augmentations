@@ -58,44 +58,6 @@ class ThinEdgeSegmenter(nn.Module):
             kernel[1, 1] = 1.
             kernels.append(kernel)
         return kernels
-
-    # Extract Layers Data
-    def extract_layers_data(self, img, thin_edges):
-        """
-        Extract pixel data between the y-coordinates where thin_edges is positive.
-        """
-        layers_data = []
-        thin_edges_np = thin_edges.squeeze().detach().cpu().numpy()
-        thin_edges_np = (self.thin_edges * 255).squeeze().detach().cpu().numpy().astype(np.uint8)
-        if thin_edges_np.ndim == 3 and thin_edges_np.shape[0] == 1:
-            thin_edges_np = thin_edges_np[0]  # Remove the channel dimension if it is 1
-        print(thin_edges_np.shape)
-
-        img_np = img.squeeze().detach().cpu().numpy()
-        img_np = (img_np * 255).astype(np.uint8)
-        if img_np.ndim == 3 and img_np.shape[0] == 1:
-            img_np = img_np[0]  # Remove the channel dimension if it is 1
-        elif img_np.ndim == 3:
-            img_np = img_np.transpose(1, 2, 0)  # Transpose to (H, W, C) format
-        print(img_np.shape)
-
-        #img_np = img.squeeze().detach().cpu().numpy()
-        # identify boundaries for each row
-        for col in range(thin_edges_np.shape[1]):
-            # get the y-coordinates where thin_edges is positive
-            boundary_rows = np.where(thin_edges_np[:, col] == 255)[0]
-            # pair up adjacent boundary rows (y1 (current row), y2 (next row))
-            for i in range(len(boundary_rows) - 1):
-                y1, y2 = boundary_rows[i], boundary_rows[i + 1]
-                # extract the segment slice
-                segment_slice = img_np[y1:y2, :]
-                layers_data.append(segment_slice)
-                segment_slice = (segment_slice * 255).astype(np.uint8)  # Convert to valid image format
-                image = Image.fromarray(segment_slice)
-                if image.mode != 'RGB':
-                    image = image.convert('RGB')
-                image.save(os.path.join(self.output_dir, 'layers', f'edges_{i}.png'))
-        return layers_data
     
     # Save Outputs
     def save_outputs(self):
@@ -113,31 +75,6 @@ class ThinEdgeSegmenter(nn.Module):
         np.save(os.path.join(self.output_dir, "thin_edges.npy"), thin_edges_np)
         with open(os.path.join(self.output_dir, "thin_edges.json"), 'w', encoding='utf-8') as f:
             json.dump(self.thin_edges.tolist(), f, indent=4)
-
-    def extract_layers_coordinates(self):
-            """
-            Extract layer coordinates using thin_edges_coordinates.
-            Modelled after extract_layers_data, but uses stored thin_edges_coordinates
-            instead of re-inspecting the thin_edges tensor.
-            """
-            from collections import defaultdict
-
-            # thin_edges_coordinates is a list of (row, col) tuples
-            coords_by_col = defaultdict(list)
-            for (row, col) in self.thin_edges_coordinates:
-                coords_by_col[col].append(row)
-
-            layer_coordinates = []
-            # For each column, sort the rows and pair adjacent ones as boundaries
-            for col, rows in coords_by_col.items():
-                rows.sort()
-                # Pair up adjacent boundary rows (y1 -> y2)
-                for i in range(len(rows) - 1):
-                    y1 = rows[i]
-                    y2 = rows[i + 1]
-                    layer_coordinates.append((col, y1, y2))
-
-            return layer_coordinates
 
     # Forward
     def forward(self, img, low_threshold=0.15, high_threshold=0.30, hysteresis=False):
@@ -201,25 +138,6 @@ class ThinEdgeSegmenter(nn.Module):
                     self.thin_edges[self.thin_edges < 1] = 0
                 else:
                     self.thin_edges = low * 1
-            # Only keep top N rows
-            # with torch.no_grad():
-            #     N = 10
-            #     row_sums = self.thin_edges[0, 0].sum(dim=1)  # sum over width
-            #     top_rows = torch.topk(row_sums, k=N, largest=True).indices
-            #     mask = torch.zeros_like(self.thin_edges[0, 0])
-            #     mask[top_rows] = 1
-            #     self.thin_edges[0, 0] *= mask
-                # coords = []
-                # for row in top_rows:
-                #     for col in range(w):
-                #         if self.thin_edges[0, 0, row, col] == 1:
-                #             coords.append((row.item(), col))
-                # self.thin_edges_coordinates = coords
-                # np.save(os.path.join(self.output_dir, "thin_edges_coodrinates.npy"), coords)
-                # with open(os.path.join(self.output_dir, "thin_edges_coodrinates.json"), 'w', encoding='utf-8') as f:
-                #     json.dump(coords, f, indent=4)
-        # Obtain the coordinates for the final edges and append them to self.thin_edges_coordinates
-
         final_coords = []
         for row in range(h):
             for col in range(w):
@@ -229,12 +147,6 @@ class ThinEdgeSegmenter(nn.Module):
         np.save(os.path.join(self.output_dir, "thin_edges_coordinates.npy"), final_coords)
         with open(os.path.join(self.output_dir, "thin_edges_coordinates.json"), 'w', encoding='utf-8') as f:
             json.dump(final_coords, f, indent=4)
-
-        #logging.debug('Final edge coordinates: %s', final_coords)
-        logging.debug('grad_x: %s', grad_x)
-        logging.debug('grad_y: %s', grad_y)
-        #self.layers_data = self.extract_layers_data(img,self.thin_edges)
-        #self.layers_coordinates = self.extract_layers_coordinates()
         return blurred, grad_x, grad_y, grad_magnitude, grad_orientation, self.thin_edges_coordinates, self.thin_edges, self.layers_data
 
     # Constructor

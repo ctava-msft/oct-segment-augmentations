@@ -1,8 +1,8 @@
-# Implement Canny Edge Detection within Pytorch
+# Implement Segment Morphing Augmentation within Pytorch
 
-![Canny Edge Detection Overview](images/0.webp)
+![Segment Morphing Augmentation Overview](images/0.webp)
 
-The Canny filter is the most known and used filter for edge detection. This experiment will use the canny filter in a multi-stage approach. The Canny filter is rarely integrated into a Deep Learning model. As such, the approach will be explained step-by-step the canny filter for contour detection. Step by step because the canny filter is a multi-stage filter. So I will describe the different parts and at the same time implement it with Pytorch. It can be customized almost without limit, I have allowed myself some deviations.
+The Segment Morphing augmentation is a powerful technique for enhancing image segmentation tasks. Unlike traditional edge detection methods like Canny, this augmentation focuses on morphing segmentation maps to create diverse and realistic augmented datasets. Leveraging libraries such as TorchIO, this approach integrates advanced transformations to ensure high-quality morphing results.
 
 ![Canny Edge Detection Details](images/1.webp)
 
@@ -91,7 +91,11 @@ In this solution, Weak pixels are characterized using a final convolution filter
 
 ![Hysteresis kernel](images/16.webp)
 
+## Morphing with TorchIO
 
+The morphing process utilizes TorchIO's suite of transformation tools, including `RandomAffine` and `RandomElasticDeformation`, to apply realistic deformations to segmentation maps. By targeting segmented regions specifically, the augmentation maintains the structural integrity of the segments while introducing variability essential for robust model training.
+
+![Morphing with TorchIO](images/morph_torchio.webp)
 
 ## Pytorch Module
 
