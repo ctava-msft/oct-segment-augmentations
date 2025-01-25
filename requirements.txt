@@ -1,0 +1,8 @@
+cuda-python
+matplotlib
+numpy
+opencv-python
+pillow
+torch
+torchio
+torchvision
