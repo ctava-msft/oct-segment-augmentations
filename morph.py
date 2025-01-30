@@ -61,12 +61,12 @@ class SegmentMorpher():
         #     tio.RandomFlip(): 0.10
         # }
         # transform = tio.Compose(transforms_dict)
-        transform = tio.RandomAffine(
-                scales=scales,
-                degrees=degrees,
-                translation=(0, translation_pixels)# / self.image_data_morphed.shape[0])
-            )
-        #transform = tio.RandomElasticDeformation()
+        # transform = tio.RandomAffine(
+        #         scales=scales,
+        #         degrees=degrees,
+        #         translation=(0, translation_pixels)# / self.image_data_morphed.shape[0])
+        #     )
+        transform = tio.RandomElasticDeformation()
         ### Transforms Definitions - End
         ## Apply transformation only within thin edges coordinates
         mask = np.zeros(self.image_data_morphed.shape[:2], dtype=bool)

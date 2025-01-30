@@ -11,7 +11,7 @@ from morph import SegmentMorpher
 from segment import ThinEdgeSegmenter
 
 exp = 1
-exp_i = 1
+exp_i = 5
 output_dir = f"_output-{exp}-{exp_i}"
 os.makedirs(output_dir, exist_ok=True)
 output_layers_dir = f"_output-{exp}-{exp_i}/layers"
